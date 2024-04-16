@@ -20,4 +20,8 @@
         <Using Include="Xunit"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Crawler\Crawler.csproj" />
+    </ItemGroup>
+
 </Project>
