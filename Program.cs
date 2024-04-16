@@ -79,7 +79,7 @@ async Task ProcessAsync(Page page)
         return;
     }
 
-    var links = await GetLinks(new Uri(url));
+    var links = await GetLinksAsync(new Uri(url));
     logger.LogDebug("Found {Count} links at {Url}.", links.Count, url);
     foreach (var link in links)
     {
@@ -90,7 +90,7 @@ async Task ProcessAsync(Page page)
     resultDict[url] = [..links];
 }
 
-static async Task<List<string>> GetLinks(Uri uri)
+static async Task<List<string>> GetLinksAsync(Uri uri)
 {
     var doc = await new HtmlWeb().LoadFromWebAsync(uri.OriginalString);
     var regex = new Regex("^http(s)?://" + uri.Host, RegexOptions.IgnoreCase);
