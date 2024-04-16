@@ -14,16 +14,13 @@ public class App(ILogger logger)
     private readonly ConcurrentDictionary<string, HashSet<string>> _resultDict = new();
     private readonly Channel<Page> _processingQueue = Channel.CreateUnbounded<Page>();
 
-    public async Task ProcessAsync()
+    public async Task Process()
     {
         await _processingQueue.Writer.WriteAsync(new Page(BaseUrl, 0));
-        var processingQueue = Channel.CreateUnbounded<Page>();
-        await processingQueue.Writer.WriteAsync(new Page(BaseUrl, 0));
-
+        var reader = _processingQueue.Reader;
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(300));
         var token = cts.Token;
         var opts = new ParallelOptions { CancellationToken = token };
-        var reader = processingQueue.Reader;
 
         try
         {
@@ -34,7 +31,7 @@ public class App(ILogger logger)
                 if (reader.Completion.IsCompleted || token.IsCancellationRequested || reader.Count == 0)
                 {
                     logger.LogDebug("Reader completed");
-                    processingQueue.Writer.Complete();
+                    _processingQueue.Writer.Complete();
                 }
             }).ContinueWith(task =>
             {
@@ -62,8 +59,8 @@ public class App(ILogger logger)
         }
         finally
         {
-            if (!processingQueue.Reader.Completion.IsCompleted)
-                processingQueue.Writer.TryComplete();
+            if (!_processingQueue.Reader.Completion.IsCompleted)
+                _processingQueue.Writer.TryComplete();
             logger.LogWarning("🏁Processing complete 🏁");
         }
     }
