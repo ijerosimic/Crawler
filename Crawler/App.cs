@@ -26,22 +26,17 @@ public class App(ILogger logger)
         {
             await Parallel.ForEachAsync(reader.ReadAllAsync(token), opts, async (url, _) =>
             {
-                logger.LogDebug("Processing {Url}", url);
                 await ProcessAsync(url);
                 if (reader.Completion.IsCompleted || token.IsCancellationRequested || reader.Count == 0)
-                {
-                    logger.LogDebug("Reader completed");
                     _processingQueue.Writer.Complete();
-                }
             });
         }
         catch (Exception e)
         {
             if (e is ChannelClosedException)
-            {
                 logger.LogWarning("🟡Channel closed");
-            }
-            else throw;
+            else
+                logger.LogError(e, "Unhandled exception during processing");
         }
         finally
         {
@@ -66,17 +61,13 @@ public class App(ILogger logger)
         var url = page.Url;
         if (_resultDict.ContainsKey(url))
         {
-            logger.LogWarning("Duplicate key. Skipping.");
+            logger.LogDebug("Duplicate key. Skipping.");
             return;
         }
 
         var links = await GetLinksAsync(new Uri(url));
-        logger.LogDebug("Found {Count} links at {Url}.", links.Count, url);
         foreach (var link in links)
-        {
-            logger.LogDebug(" 🔗{link}", link);
             _processingQueue.Writer.TryWrite(new Page(link, page.Depth + 1));
-        }
 
         _resultDict[url] = [..links];
     }
