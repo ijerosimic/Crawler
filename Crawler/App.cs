@@ -33,21 +33,7 @@ public class App(ILogger logger)
                     logger.LogDebug("Reader completed");
                     _processingQueue.Writer.Complete();
                 }
-            }).ContinueWith(task =>
-            {
-                if (task.IsFaulted && task.Exception.InnerException is ChannelClosedException)
-                {
-                    logger.LogWarning("🟡Channel closed");
-                }
-                else if (task.IsFaulted)
-                {
-                    logger.LogError(task.Exception, "🔴Error processing");
-                    throw task.Exception;
-                }
-            }, token);
-
-            foreach (var (url, links) in _resultDict)
-                logger.LogWarning("🟢Url {Url} has {Count} links: 🔗{@Links} 🟢", url, links.Count, links);
+            });
         }
         catch (Exception e)
         {
@@ -61,6 +47,10 @@ public class App(ILogger logger)
         {
             if (!_processingQueue.Reader.Completion.IsCompleted)
                 _processingQueue.Writer.TryComplete();
+            
+            foreach (var (url, links) in _resultDict)
+                logger.LogWarning("🟢Url {Url} has {Count} links: 🔗{@Links} 🟢", url, links.Count, links);
+            
             logger.LogWarning("🏁Processing complete 🏁");
         }
     }
