@@ -10,7 +10,7 @@ public class Producer(ILogger logger, IParserService parserServiceService)
  
     private record Page(string Url, int Depth);
     
-    private readonly ConcurrentDictionary<string, HashSet<string>> _resultDict = new();
+    private readonly ConcurrentDictionary<string, HashSet<string>> _visitedPages = new();
     private readonly Channel<Page> _processingQueue = Channel.CreateUnbounded<Page>();
 
     public async Task<ConcurrentDictionary<string, HashSet<string>>> Produce(string baseUrl)
@@ -42,7 +42,7 @@ public class Producer(ILogger logger, IParserService parserServiceService)
             _processingQueue.Writer.TryComplete();
 
         logger.LogWarning("🏁Processing complete 🏁");
-        return _resultDict;
+        return _visitedPages;
     }
 
     private async Task ProcessAsync(Page page)
@@ -54,7 +54,7 @@ public class Producer(ILogger logger, IParserService parserServiceService)
         }
 
         var url = page.Url;
-        if (_resultDict.ContainsKey(url))
+        if (_visitedPages.ContainsKey(url))
         {
             logger.LogDebug("Duplicate key. Skipping.");
             return;
@@ -64,6 +64,6 @@ public class Producer(ILogger logger, IParserService parserServiceService)
         foreach (var link in links)
             _processingQueue.Writer.TryWrite(new Page(link, page.Depth + 1));
 
-        _resultDict[url] = [..links];
+        _visitedPages[url] = [..links];
     }
 }
