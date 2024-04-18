@@ -9,5 +9,5 @@ const string baseUrl = "https://www.monzo.com";
 var parser = new HtmlWebUrlParser();
 var app = new Producer(logger, parser);
 var results = await app.Produce(baseUrl);
-foreach (var (url, links) in results)
-    logger.LogWarning("🟢Url {Url} has {Count} links: 🔗{@Links} 🟢", url, links.Count, links);
+foreach (var (page, links) in results)
+    logger.LogWarning("🟢Url {Url} has {Count} links: 🔗{@Links} 🟢", page, links.Count, links);
