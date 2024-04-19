@@ -29,7 +29,7 @@ public class ParserTests
         var sut = new HtmlWebUrlParser();
         var result = await sut.GetLinksAsync(new Uri(baseUrl));
 
-        Assert.Equal(1, result.Count);
+        Assert.Single(result);
         Assert.Equal("https://localhost:5226/more", result.First());
     }
 }

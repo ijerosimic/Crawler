@@ -52,7 +52,7 @@ public class ProducerTests
         var sut = new Producer(_mockLogger.Object, _mockParser.Object);
         var result = await sut.Produce(BaseUrl, 0);
 
-        Assert.Equal(1, result.Keys.Count);
+        Assert.Single(result.Keys);
         Assert.True(result.ContainsKey(BaseUrl));
         Assert.Empty(result[BaseUrl]);
     }
