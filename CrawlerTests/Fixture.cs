@@ -4,13 +4,19 @@ using WireMock.Server;
 
 namespace CrawlerTests;
 
-public static class Fixture
+[CollectionDefinition(CrawlerTestCollection)]
+public class TestCollection : ICollectionFixture<Fixture>
 {
-    internal static void StartServer()
-    {
-        var server = WireMockServer.Start(5226);
+    public const string CrawlerTestCollection = nameof(CrawlerTestCollection);
+}
 
-        server.Given(Request.Create().WithPath("/about").UsingGet())
+public class Fixture : IAsyncLifetime
+{
+    private readonly WireMockServer _server = WireMockServer.Start(5226);
+
+    public Task InitializeAsync()
+    {
+        _server.Given(Request.Create().WithPath("/about").UsingGet())
             .RespondWith(
                 Response.Create()
                     .WithStatusCode(200)
@@ -25,7 +31,7 @@ public static class Fixture
                             </body>
                         </html>"));
 
-        server.Given(Request.Create().WithPath("/duplicates-and-junk").UsingGet())
+        _server.Given(Request.Create().WithPath("/duplicates-and-junk").UsingGet())
             .RespondWith(
                 Response.Create()
                     .WithStatusCode(200)
@@ -40,5 +46,13 @@ public static class Fixture
                                 <a href='https://localhost:5226/more#Part2'>Part 2</a>
                             </body>
                         </html>"));
+
+        return Task.CompletedTask;
+    }
+
+    public Task DisposeAsync()
+    {
+        _server.Stop();
+        return Task.CompletedTask;
     }
 }

@@ -2,16 +2,16 @@ using Crawler;
 
 namespace CrawlerTests;
 
+[Collection(TestCollection.CrawlerTestCollection)]
 public class ParserTests
 {
+    private const string BaseUrl = "http://localhost:5226";
+    
     [Fact]
     public async Task ItReturnsExpectedResult()
     {
-        Fixture.StartServer();
-        const string baseUrl = "http://localhost:5226/about";
-
         var sut = new HtmlWebUrlParser();
-        var result = await sut.GetLinksAsync(new Uri(baseUrl));
+        var result = await sut.GetLinksAsync(new Uri(BaseUrl + "/about"));
 
         Assert.Equal(4, result.Count);
         Assert.Equal("https://localhost:5226/more", result.First());
@@ -23,11 +23,8 @@ public class ParserTests
     [Fact]
     public async Task ItReturnsNormalizedResult_When_Data_Contains_Junk()
     {
-        Fixture.StartServer();
-        const string baseUrl = "http://localhost:5226/duplicates-and-junk";
-
         var sut = new HtmlWebUrlParser();
-        var result = await sut.GetLinksAsync(new Uri(baseUrl));
+        var result = await sut.GetLinksAsync(new Uri(BaseUrl + "/duplicates-and-junk"));
 
         Assert.Single(result);
         Assert.Equal("https://localhost:5226/more", result.First());

@@ -48,16 +48,16 @@ public class Producer(ILogger logger, IParserService parserServiceService)
         var url = page.Url;
         if (depthLimit == 0)
         {
-            _visitedPages[url] = [];
+            logger.LogDebug("Depth limit is 0. Skipping.");
             return;
         }
-        
+
         if (page.Depth >= depthLimit)
         {
             logger.LogDebug("Depth limit reached.");
             return;
         }
-        
+
         if (_visitedPages.ContainsKey(url))
         {
             logger.LogDebug("Duplicate key. Skipping.");
@@ -68,6 +68,7 @@ public class Producer(ILogger logger, IParserService parserServiceService)
         foreach (var link in links)
             _processingQueue.Writer.TryWrite(new Page(link, page.Depth + 1));
 
-        _visitedPages[url] = [..links];
+        if (page.Depth > 0)
+            _visitedPages[url] = [..links];
     }
 }

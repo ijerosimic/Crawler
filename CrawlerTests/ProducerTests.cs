@@ -33,16 +33,14 @@ public class ProducerTests
         var sut = new Producer(mockLogger.Object, _mockParser.Object);
         var result = await sut.Produce(BaseUrl, 2);
 
-        Assert.Equal(2, result.Keys.Count);
+        Assert.Equal(1, result.Keys.Count);
 
-        Assert.True(result.ContainsKey(BaseUrl));
         Assert.True(result.ContainsKey(FirstLevelChild));
+        Assert.False(result.ContainsKey(BaseUrl));
         Assert.False(result.ContainsKey(SecondLevelChild));
 
-        Assert.Single(result[BaseUrl]);
         Assert.Single(result[FirstLevelChild]);
 
-        Assert.Equal(_firstLevelUrls, result[BaseUrl]);
         Assert.Equal(_secondLevelUrls, result[FirstLevelChild]);
     }
 
@@ -52,8 +50,7 @@ public class ProducerTests
         var sut = new Producer(_mockLogger.Object, _mockParser.Object);
         var result = await sut.Produce(BaseUrl, 0);
 
-        Assert.Single(result.Keys);
-        Assert.True(result.ContainsKey(BaseUrl));
-        Assert.Empty(result[BaseUrl]);
+        Assert.Empty(result.Keys);
+        Assert.False(result.ContainsKey(BaseUrl));
     }
 }
