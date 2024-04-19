@@ -26,7 +26,7 @@ public class ProducerTests
     }
 
     [Fact]
-    public async Task It_Produces_The_Correct_Result()
+    public async Task It_Produces_The_Correct_Result_Given_A_BaseUrl_And_DepthLimit()
     {
         var mockLogger = new Mock<ILogger>();
 
