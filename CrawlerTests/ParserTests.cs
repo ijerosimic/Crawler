@@ -21,7 +21,7 @@ public class ParserTests
     }
     
     [Fact]
-    public async Task ItReturnsNormalizedResult()
+    public async Task ItReturnsNormalizedResult_When_Data_Contains_Junk()
     {
         Fixture.StartServer();
         const string baseUrl = "http://localhost:5226/duplicates-and-junk";

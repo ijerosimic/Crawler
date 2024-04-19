@@ -6,14 +6,12 @@ namespace Crawler;
 
 public class Producer(ILogger logger, IParserService parserServiceService)
 {
-    private const int DepthLimit = 2;
- 
     private record Page(string Url, int Depth);
-    
+
     private readonly ConcurrentDictionary<string, HashSet<string>> _visitedPages = new();
     private readonly Channel<Page> _processingQueue = Channel.CreateUnbounded<Page>();
 
-    public async Task<ConcurrentDictionary<string, HashSet<string>>> Produce(string baseUrl)
+    public async Task<ConcurrentDictionary<string, HashSet<string>>> Produce(string baseUrl, int depthLimit)
     {
         await _processingQueue.Writer.WriteAsync(new Page(baseUrl, 0));
         var reader = _processingQueue.Reader;
@@ -25,7 +23,7 @@ public class Producer(ILogger logger, IParserService parserServiceService)
         {
             await Parallel.ForEachAsync(reader.ReadAllAsync(token), opts, async (url, _) =>
             {
-                await ProcessAsync(url);
+                await ProcessAsync(url, depthLimit);
                 if (reader.Completion.IsCompleted || token.IsCancellationRequested || reader.Count == 0)
                     _processingQueue.Writer.TryComplete();
             });
@@ -45,15 +43,21 @@ public class Producer(ILogger logger, IParserService parserServiceService)
         return _visitedPages;
     }
 
-    private async Task ProcessAsync(Page page)
+    private async Task ProcessAsync(Page page, int depthLimit)
     {
-        if (page.Depth >= DepthLimit)
+        var url = page.Url;
+        if (depthLimit == 0)
+        {
+            _visitedPages[url] = [];
+            return;
+        }
+        
+        if (page.Depth >= depthLimit)
         {
             logger.LogDebug("Depth limit reached.");
             return;
         }
-
-        var url = page.Url;
+        
         if (_visitedPages.ContainsKey(url))
         {
             logger.LogDebug("Duplicate key. Skipping.");
